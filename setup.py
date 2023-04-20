@@ -15,11 +15,12 @@ setup(
     zip_safe=True,
     maintainer='dean',
     maintainer_email='deanmacasilhig@gmail.com',
-    description='TODO: Package description',
-    license='TODO: License declaration',
+    description='Driver of multiple ODrives for the DBOT robot.',
+    license='MIT',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'dbot_driver_node = dbot_driver.dbot_controller_node:main'
         ],
     },
 )
