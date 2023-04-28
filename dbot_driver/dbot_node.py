@@ -3,27 +3,26 @@ import rclpy
 from rclpy.node import Node
 from odrive.enums import *
 from std_msgs.msg import Float32MultiArray
-from odrive_controller import OdriveController 
-from dbot_controller import DbotController
+from .dbot_controller import DbotController
+from .odrive_controller import OdriveController 
+
 
 class DbotNode(Node):
     def __init__(self, dbot_controller:DbotController):
         super().__init__('dbot_driver')
         self.dbot_controller = dbot_controller
         
-        # Create Data Publishers
-        self.axis_pos_publisher = self.create_publisher(Float32MultiArray, 'axis_pos_topic', 50)
-        self.axis_vel_publisher = self.create_publisher(Float32MultiArray, 'axis_vel_topic', 50)
+        # Data Publishers
+        self.axis_pos_publisher = self.create_publisher(Float32MultiArray, 'joint_pos_topic', 50)
+        self.axis_vel_publisher = self.create_publisher(Float32MultiArray, 'joint_vel_topic', 50)
 
         # Create Timers for the publisher
-        timer_period = 0.1  # in seconds
+        timer_period = 0.01  # in seconds [100 hz] [10ms]
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
-        #
+        # Data Subscribers
         self.axis_pos_subscriber = self.create_subscription(Float32MultiArray, 'axis_pos_topic', self.axis_pos_callback, 50)
         self.axis_vel_subscriber = self.create_subscription(Float32MultiArray, 'axis_vel_topic', self.axis_vel_callback, 50)
-
-        #
 
     def timer_callback(self):
         # Get Data from ODrive and publish it

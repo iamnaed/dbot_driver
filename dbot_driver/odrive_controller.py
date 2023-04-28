@@ -35,7 +35,6 @@ class OdriveController:
         pass
 
     def encoder_offset_calibration(self, axes:List[int]=[0,1], calibration_override:bool=False):
-
         if not calibration_override:
             for axis in axes:
                 if not self.axes[axis].encoder.is_ready:
@@ -56,6 +55,7 @@ class OdriveController:
 
                 print(f'Waiting {self.calibration_override_timer} seconds for calibration to complete...')
                 sleep(self.calibration_override_timer)
+                print(f'Encoder calibration timed out. . .')
 
     def arm_velocity_control(self, axes:List[int]=[0,1]):
         for axis in axes:
@@ -91,10 +91,10 @@ class OdriveController:
             print(f'Cannot process command. Position control is not armed on {self.name}.')
 
     def get_velocity(self):
-        return self.axes[0].encoder.vel_estimate, self.axes[1].encoder.vel_estimate
+        return self.axis0.encoder.vel_estimate, self.axis1.encoder.vel_estimate
 
     def get_position(self):
-        return self.axes[0].encoder.pos_estimate, self.axes[1].encoder.pos_estimate
+        return self.axis0.encoder.pos_estimate, self.axis1.encoder.pos_estimate
 
     def get_errors(self, axes:List[int]=[0,1]):
         for axis in axes:

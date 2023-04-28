@@ -20,7 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'dbot_driver_node = dbot_driver.dbot_node:main'
+            'dbot_node = dbot_driver.dbot_node:main'
         ],
     },
 )
