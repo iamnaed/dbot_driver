@@ -45,11 +45,17 @@ class DbotController:
         self.odrives[2].command_position(axis=0, position=position[4])
         self.odrives[2].command_position(axis=1, position=position[5])
 
-    def get_velocity(self, axis):
-        return self.axes[axis].encoder.vel_estimate
+    def get_joint_velocity(self):
+        joint0,joint1 = self.odrives[0].get_position()
+        joint2,joint3 = self.odrives[1].get_position()
+        joint4,joint5 = self.odrives[2].get_position()
+        return [joint0, joint1, joint2, joint3, joint4, joint5]
 
-    def get_position(self, axis):
-        return self.axes[axis].encoder.pos_estimate
+    def get_joint_position(self):
+        joint0,joint1 = self.odrives[0].get_velocity()
+        joint2,joint3 = self.odrives[1].get_velocity()
+        joint4,joint5 = self.odrives[2].get_velocity()
+        return [joint0, joint1, joint2, joint3, joint4, joint5]
 
     def get_errors(self, axes=[0,1]):
         for odrive in self.odrives:

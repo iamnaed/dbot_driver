@@ -90,11 +90,11 @@ class OdriveController:
         else:
             print(f'Cannot process command. Position control is not armed on {self.name}.')
 
-    def get_velocity(self, axis:int):
-        return self.axes[axis].encoder.vel_estimate
+    def get_velocity(self):
+        return self.axes[0].encoder.vel_estimate, self.axes[1].encoder.vel_estimate
 
-    def get_position(self, axis:int):
-        return self.axes[axis].encoder.pos_estimate
+    def get_position(self):
+        return self.axes[0].encoder.pos_estimate, self.axes[1].encoder.pos_estimate
 
     def get_errors(self, axes:List[int]=[0,1]):
         for axis in axes:
