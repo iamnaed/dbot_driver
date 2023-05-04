@@ -10,7 +10,6 @@ from typing import List
 Find Odrive serial number (need it in hex format) in odrivetool by running:
     hex(odrv0.serial_number).split('x')[1].upper()
 '''
-ODRIVE_SERIAL_NUMBER = "364D38623030"
 
 class OdriveController:
     def __init__(self, name:str, serial_number:str) -> None:
@@ -31,62 +30,72 @@ class OdriveController:
         self.armed_pos = False
         self.calibration_override_timer = 10
     
-    def full_calibration(self, axes:List[int]=[0,1], calibration_override:bool=False):
-        pass
-
-    def encoder_offset_calibration(self, axes:List[int]=[0,1], calibration_override:bool=False):
-        if not calibration_override:
-            for axis in axes:
-                if not self.axes[axis].encoder.is_ready:
-                    print(f'Calibrating encoder on axis{axis} on {self.name}')
-                    self.axes[axis].requested_state = AxisState.ENCODER_OFFSET_CALIBRATION
-                else:
-                    pass
-            
-            while len(axes):
-                for axis in axes:
-                    if self.axes[axis].encoder.is_ready:
-                        axes.remove(axis)
-
-        else:
-            for axis in axes:
-                print(f"Calibrating encoder on axis{axis} on {self.name}")
-                self.axes[axis].requested_state = AxisState.ENCODER_OFFSET_CALIBRATION
-
-                print(f'Waiting {self.calibration_override_timer} seconds for calibration to complete...')
-                sleep(self.calibration_override_timer)
-                print(f'Encoder calibration timed out. . .')
-
-    def arm_velocity_control(self, axes:List[int]=[0,1]):
+    def motor_calibration(self, axes:List[int]=[0,1], override:bool=False):
         for axis in axes:
-            print(f"Arming axis{axis} on {self.name}")
-            self.axes[axis].controller.input_vel = 0
-            self.axes[axis].controller.config.input_mode = InputMode.VEL_RAMP
-            self.axes[axis].requested_state = AxisState.CLOSED_LOOP_CONTROL
+            print(f"Motor calibration axis{axis} on {self.name}")
+            self.axes[axis].requested_state = AxisState.MOTOR_CALIBRATION
+
+    def encoder_index_search(self, axes:List[int]=[0,1], override:bool=False):
+        for axis in axes:
+            print(f"Encoder index search axis{axis} on {self.name}")
+            self.axes[axis].requested_state = AxisState.ENCODER_INDEX_SEARCH
+
+    def enter_velocity_control(self, axes:List[int]=[0,1]):
+        if not self.armed_vel:
+            for axis in axes:
+                print(f"Arming axis{axis} on {self.name}")
+                self.axes[axis].controller.input_vel = 0
+                self.axes[axis].controller.config.input_mode = InputMode.VEL_RAMP
         
-        self.armed_vel = True
+            self.armed_vel = True
+            self.armed_pos = False
+        else:
+            pass
+
+    def enter_position_control(self, axes:List[int]=[0,1]):
+        if not self.armed_pos:
+            for axis in axes:
+                print(f"Arming axis{axis} on {self.name}")
+                self.axes[axis].controller.input_pos = 0
+                self.axes[axis].controller.config.input_mode = InputMode.POS_FILTER
+        
+            self.armed_vel = False
+            self.armed_pos = True
+        else:
+            pass
+
+    def enter_idle(self, axes:List[int]=[0,1]):
+        for axis in axes:
+            print(f"Entering idle mode axis{axis} on {self.name}")
+            self.axes[axis].requested_state = AxisState.IDLE
+        self.armed_vel = False
         self.armed_pos = False
 
-    def arm_position_control(self, axes:List[int]=[0,1]):
-        for axis in axes:
-            print(f"Arming axis{axis} on {self.name}")
-            self.axes[axis].controller.input_pos = 0
-            self.axes[axis].controller.config.input_mode = InputMode.POS_FILTER
-            self.axes[axis].requested_state = AxisState.CLOSED_LOOP_CONTROL
-    
-        self.armed_vel = False
-        self.armed_pos = True
+    def enter_trapezoidal_trajectory_control(self, axes:List[int]=[0,1]):
+        if not self.armed_pos:
+            for axis in axes:
+                print(f"Entering trapezoidal trajectory mode axis{axis} on {self.name}")
+                self.axes[axis].controller.input_pos = 0
+                self.axes[axis].controller.config.input_mode = InputMode.TRAP_TRAJ
+                self.axes[axis].requested_state = AxisState.CLOSED_LOOP_CONTROL
+            self.armed_vel = False
+            self.armed_pos = True
+        else:
+            pass
 
-    def command_velocity(self, axis:int, velocity:float):
+    def command_velocity(self, axes:List[int]=[0,1], velocity:List[float] = [0.0,0.0]):
         if self.armed_vel:
-            print(f'Commanding velocity {velocity} on axis{axis}, {self.name}')
-            self.axes[axis].controller.input_vel = velocity
+            for axis in axes:
+                print(f'Commanding velocity {velocity[axis]} on axis{axis}, {self.name}')
+                self.axes[axis].controller.input_vel = velocity[axis]
         else:
             print(f'Cannot process command. Velocity control is not armed on {self.name}.')
 
-    def command_position(self, axis:int, position:float):
+    def command_position(self, axes:List[int]=[0,1], position:List[float] = [0.0,0.0]):
         if self.armed_pos:
-            self.axes[axis].controller.input_pos = position
+            for axis in axes:
+                print(f'Commanding position {position[axis]} on axis{axis}, {self.name}')
+                self.axes[axis].controller.input_pos = position[axis]
         else:
             print(f'Cannot process command. Position control is not armed on {self.name}.')
 

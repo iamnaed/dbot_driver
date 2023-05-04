@@ -18,13 +18,13 @@ class DbotNode(Node):
 
         # Create Timers for the publisher
         timer_period = 0.01  # in seconds [100 hz] [10ms]
-        self.timer = self.create_timer(timer_period, self.timer_callback)
+        self.timer = self.create_timer(timer_period, self.__joint_data_callback)
 
         # Data Subscribers
-        self.axis_pos_subscriber = self.create_subscription(Float32MultiArray, 'axis_pos_topic', self.axis_pos_callback, 50)
-        self.axis_vel_subscriber = self.create_subscription(Float32MultiArray, 'axis_vel_topic', self.axis_vel_callback, 50)
+        self.axis_pos_subscriber = self.create_subscription(Float32MultiArray, 'cmd_pos_topic', self.axis_pos_callback, 50)
+        self.axis_vel_subscriber = self.create_subscription(Float32MultiArray, 'cmd_vel_topic', self.axis_vel_callback, 50)
 
-    def timer_callback(self):
+    def __joint_data_callback(self):
         # Get Data from ODrive and publish it
         joint_pos = self.dbot_controller.get_joint_position()
         joint_vel = self.dbot_controller.get_joint_velocity()
@@ -51,14 +51,16 @@ def main(args=None):
     
     # Initialize
     rclpy.init(args=args)
-    odrive0 = OdriveController("odrive0", "364D38623030")
+
+    # Odrives with hard coded serial numbers
+    odrive0 = OdriveController("odrive0", "2075396D4D4D") # My First odrive serial number
     odrive1 = OdriveController("odrive1", "364D38623030")
     odrive2 = OdriveController("odrive2", "364D38623030")
     dbot_controller = DbotController([odrive0, odrive1, odrive2])
     dbot_node = DbotNode(dbot_controller=dbot_controller)
 
     # Calibrate
-    dbot_controller.encoder_offset_calibration()
+    dbot_controller.encoder_index_search()
     dbot_controller.arm_position_control()
 
     # Spin
