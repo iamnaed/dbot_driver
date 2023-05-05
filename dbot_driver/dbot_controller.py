@@ -5,18 +5,32 @@ class DbotController:
     def __init__(self, odrive_controllers:List[OdriveController]) -> None:
         self.odrive_controllers = odrive_controllers
          
-    def motor_calibration(self, calibration_override = False):
-        pass
+    def motor_calibration(self, override = False):
+        for odrive in self.odrive_controllers:
+            odrive.motor_calibration(override=override)
 
-    def encoder_index_search(self, calibration_override = False):
-        pass
+    def encoder_index_search(self, override = False):
+        for odrive in self.odrive_controllers:
+            odrive.encoder_index_search(override=override)
     
     def closed_loop_control():
         pass
 
-    def encoder_offset_calibration(self, calibration_override=False):
+    def enter_velocity_control(self, axes:List[int]=[0,1]):
         for odrive in self.odrive_controllers:
-            odrive.encoder_offset_calibration(calibration_override=calibration_override)
+            odrive.enter_velocity_control(axes=axes)
+
+    def enter_position_control(self, axes:List[int]=[0,1]):
+        for odrive in self.odrive_controllers:
+            odrive.enter_position_control(axes=axes)
+
+    def enter_idle(self, axes:List[int]=[0,1]):
+        for odrive in self.odrive_controllers:
+            odrive.enter_idle(axes=axes)
+
+    def enter_trapezoidal_trajectory_control(self, axes:List[int]=[0,1]):
+        for odrive in self.odrive_controllers:
+            odrive.enter_trapezoidal_trajectory_control(axes=axes)
 
     def arm_velocity_control(self):
         for odrive in self.odrive_controllers:
