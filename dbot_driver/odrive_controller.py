@@ -26,9 +26,7 @@ class OdriveController:
         self.axis1 = self.odrive.axis1
         self.axes = {0: self.odrive.axis0,
                      1: self.odrive.axis1}
-        self.armed_vel = False
-        self.armed_pos = False
-        self.calibration_override_timer = 10
+        self.armed = False
     
     def motor_calibration(self, axes:List[int]=[0,1], override:bool=False):
         for axis in axes:
@@ -40,36 +38,45 @@ class OdriveController:
             print(f"Encoder index search axis{axis} on {self.name}")
             self.axes[axis].requested_state = AxisState.ENCODER_INDEX_SEARCH
 
+    def enter_closed_loop_control(self, axes:List[int]=[0,1]):
+        if not self.armed:
+            for axis in axes:
+                print(f"Entering closed loop control mode axis{axis} on {self.name}")
+                #self.axes[axis].controller.input_pos = 0
+                #self.axes[axis].controller.config.input_mode = InputMode.PASSTHROUGH
+                self.axes[axis].requested_state = AxisState.CLOSED_LOOP_CONTROL
+        
+            self.armed = True
+        else:
+            print(f"enter_closed_loop_control failed: Already armed. Switch to Idle first.")
+
     def enter_velocity_control(self, axes:List[int]=[0,1]):
-        if not self.armed_vel:
+        if not self.armed:
             for axis in axes:
                 print(f"Arming axis{axis} on {self.name}")
                 self.axes[axis].controller.input_vel = 0
                 self.axes[axis].controller.config.input_mode = InputMode.VEL_RAMP
         
-            self.armed_vel = True
-            self.armed_pos = False
+            self.armed = True
         else:
-            pass
+            print(f"enter_velocity_control failed: Already armed. Switch to Idle first.")
 
     def enter_position_control(self, axes:List[int]=[0,1]):
-        if not self.armed_pos:
+        if not self.armed:
             for axis in axes:
                 print(f"Arming axis{axis} on {self.name}")
-                self.axes[axis].controller.input_pos = 0
-                self.axes[axis].controller.config.input_mode = InputMode.POS_FILTER
-        
-            self.armed_vel = False
-            self.armed_pos = True
+                #self.axes[axis].controller.input_pos = 0
+                self.axes[axis].controller.config.input_mode = InputMode.PASSTHROUGH
+                self.axes[axis].requested_state = AxisState.CLOSED_LOOP_CONTROL
+            self.armed = False
         else:
-            pass
+            print(f"enter_position_control failed: Already armed. Switch to Idle first.")
 
     def enter_idle(self, axes:List[int]=[0,1]):
         for axis in axes:
             print(f"Entering idle mode axis{axis} on {self.name}")
             self.axes[axis].requested_state = AxisState.IDLE
-        self.armed_vel = False
-        self.armed_pos = False
+        self.armed = False
 
     def enter_trapezoidal_trajectory_control(self, axes:List[int]=[0,1]):
         if not self.armed_pos:
@@ -86,7 +93,7 @@ class OdriveController:
     def command_velocity(self, axes:List[int]=[0,1], velocity:List[float] = [0.0,0.0]):
         if self.armed_vel:
             for axis in axes:
-                print(f'Commanding velocity {velocity[axis]} on axis{axis}, {self.name}')
+                #print(f'Commanding velocity {velocity[axis]} on axis{axis}, {self.name}')
                 self.axes[axis].controller.input_vel = velocity[axis]
         else:
             print(f'Cannot process command. Velocity control is not armed on {self.name}.')
@@ -94,7 +101,7 @@ class OdriveController:
     def command_position(self, axes:List[int]=[0,1], position:List[float] = [0.0,0.0]):
         if self.armed_pos:
             for axis in axes:
-                print(f'Commanding position {position[axis]} on axis{axis}, {self.name}')
+                #print(f'Commanding position {position[axis]} on axis{axis}, {self.name}')
                 self.axes[axis].controller.input_pos = position[axis]
         else:
             print(f'Cannot process command. Position control is not armed on {self.name}.')
@@ -112,3 +119,6 @@ class OdriveController:
             print('Motor: ' + str(hex(self.axes[axis].motor.error)))
             print('Controller :' + str(hex(self.axes[axis].controller.error)))
             print('Encoder: ' + str(hex(self.axes[axis].encoder.error)))
+
+    def clear_errors(self, axes:List[int]=[0,1]):
+        self.odrive.clear_errors()

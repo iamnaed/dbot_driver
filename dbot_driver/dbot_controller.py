@@ -13,7 +13,7 @@ class DbotController:
         for odrive in self.odrive_controllers:
             odrive.encoder_index_search(override=override)
     
-    def closed_loop_control():
+    def enter_closed_loop_control():
         pass
 
     def enter_velocity_control(self, axes:List[int]=[0,1]):
@@ -67,17 +67,21 @@ class DbotController:
         self.self.odrive_controllers[2].command_position(axis=1, position=position[5])
 
     def get_joint_velocity(self):
-        joint0,joint1 = self.self.odrive_controllers[0].get_position()
-        joint2,joint3 = self.self.odrive_controllers[1].get_position()
-        joint4,joint5 = self.self.odrive_controllers[2].get_position()
+        joint0,joint1 = self.odrive_controllers[0].get_position()
+        joint2,joint3 = self.odrive_controllers[1].get_position()
+        joint4,joint5 = self.odrive_controllers[2].get_position()
         return [joint0, joint1, joint2, joint3, joint4, joint5]
 
     def get_joint_position(self):
-        joint0,joint1 = self.self.odrive_controllers[0].get_velocity()
-        joint2,joint3 = self.self.odrive_controllers[1].get_velocity()
-        joint4,joint5 = self.self.odrive_controllers[2].get_velocity()
+        joint0,joint1 = self.odrive_controllers[0].get_velocity()
+        joint2,joint3 = self.odrive_controllers[1].get_velocity()
+        joint4,joint5 = self.odrive_controllers[2].get_velocity()
         return [joint0, joint1, joint2, joint3, joint4, joint5]
 
-    def get_errors(self, axes=[0,1]):
-        for odrive in self.self.odrive_controllers:
-            odrive.get_errors()
+    def get_errors(self, odrives=[0,1,2]):
+        for odrive in self.odrives:
+            self.odrive_controllers[odrive].get_errors()
+
+    def clear_errors(self, odrives=[0,1,2]):
+        for odrive in self.odrives:
+            self.odrive_controllers[odrive].clear_errors()
